@@ -1,3 +1,27 @@
 Use a ORM?
 Command to setup DB?
 In Go
+
+
+
+
+CREATE MATERIALIZED VIEW cpu_usage_summary_minute
+WITH (timescaledb.continuous) AS
+SELECT host,
+       time_bucket(INTERVAL '1 minute', ts) AS bucket,
+       MAX(usage),
+       MIN(usage)
+FROM cpu_usage
+GROUP BY host, bucket;
+
+
+
+SELECT bucket, max, min
+FROM cpu_usage_summary_minute
+WHERE host = 'host_000001' AND bucket BETWEEN '2017-01-01 01:08:00+00' AND '2017-01-01 01:20:00+00'
+ORDER BY bucket;
+
+
+Hi Kim,
+
+ I just started the assigment
