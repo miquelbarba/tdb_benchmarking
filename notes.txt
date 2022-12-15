@@ -1,0 +1,33 @@
+
+# Install timescale
+docker pull --platform linux/arm64 timescale/timescaledb:latest-pg14
+
+# Run timescale container
+docker run -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb:latest-pg14
+
+# Open psql
+docker exec -it timescaledb psql -U postgres
+
+# Stop container
+docker kill timescaledb
+
+# Remove container
+docker rm timescaledb
+
+# Create database 
+docker exec -i timescaledb psql -U postgres < db/cpu_usage.sql
+
+# Import data
+docker cp db/cpu_usage.csv timescaledb:/tmp/cpu_usage.csv
+docker exec -i timescaledb psql -U postgres -d homework -c "\COPY cpu_usage FROM /tmp/cpu_usage.csv CSV HEADER"
+
+
+
+
+
+alias docker_stop_all='docker kill $(docker ps -q)'
+alias docker_rmc='docker rm $(docker ps -a -q) -f'
+alias docker_rmi='docker rmi $(docker images -q) -f'
+alias docker_prunen='docker network prune -f'
+alias docker_prunev='docker volume prune -f'
+alias docker_rm_all='docker_rmc;docker_rmi;docker_prunen;docker_prunev'
