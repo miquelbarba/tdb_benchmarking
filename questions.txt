@@ -1,0 +1,3 @@
+Use a ORM?
+Command to setup DB?
+In Go
