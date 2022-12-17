@@ -21,10 +21,10 @@ func main() {
 
 	quit := make(chan int)
 
-	var chans [20]chan []string
-	for i := 0; i < len(chans); i++ {
-		chans[i] = make(chan []string)
-		go benchmark.Process(&wg, i, chans[i], quit)
+	var channels [20]chan []string
+	for i := 0; i < len(channels); i++ {
+		channels[i] = make(chan []string)
+		go benchmark.Process(&wg, i, channels[i], quit)
 	}
 
 	f, err := os.Open("data/query_params.csv")
@@ -55,10 +55,10 @@ func main() {
 			log.Panicln(err)
 		}
 
-		chans[numChannel] <- append([]string{Query}, rec...)
+		channels[numChannel] <- append([]string{Query}, rec...)
 	}
 
-	for i := 0; i < len(chans); i++ {
+	for i := 0; i < len(channels); i++ {
 		quit <- 0
 	}
 
