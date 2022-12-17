@@ -13,15 +13,17 @@ import (
 )
 
 const Query = "SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3"
+const connStr = "postgres://postgres:password@192.168.1.36:5432/homework"
+const NumWorkers = 20
 
 func main() {
 	quit := make(chan int)
 	result := make(chan []int64)
 
-	var channels [20]chan []string
+	var channels [NumWorkers]chan []string
 	for i := 0; i < len(channels); i++ {
 		channels[i] = make(chan []string)
-		go benchmark.Process(channels[i], result, quit)
+		go benchmark.Process(connStr, channels[i], result, quit)
 	}
 
 	f, err := os.Open("data/query_params.csv")
