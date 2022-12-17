@@ -17,9 +17,6 @@ func NewConnection(ctx context.Context, connStr string) (Connection, error) {
 	return Connection{DB: conn}, err
 }
 
-// SQL query that returns the max cpu usage and min cpu usage of the given hostname
-// for every minute in the time range specified by the start time and end time.
-// SELECT MAX(usage), MIN(usage) FROM cpu_usage WHERE host = $1 AND ts BETWEEN($2, $3)
 func (c *Connection) ExecSelect(ctx context.Context, query string, args ...any) (pgx.Rows, error) {
 	return c.DB.Query(ctx, query, args)
 }

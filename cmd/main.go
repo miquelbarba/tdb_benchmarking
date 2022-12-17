@@ -12,6 +12,8 @@ import (
 	"tdb_benchmarking/benchmark"
 )
 
+const Query = "SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3"
+
 func main() {
 	var wg sync.WaitGroup
 
@@ -25,7 +27,6 @@ func main() {
 		go benchmark.Process(&wg, i, chans[i], quit)
 	}
 
-	// open file
 	f, err := os.Open("data/query_params.csv")
 	if err != nil {
 		log.Panicln(err)
@@ -33,9 +34,10 @@ func main() {
 
 	defer f.Close()
 
-	// read csv values using csv.Reader
 	csvReader := csv.NewReader(f)
-	csvReader.Read() //nolint:errcheck // we don't use header
+
+	//nolint:errcheck // we don't use header
+	csvReader.Read()
 
 	for {
 		rec, err := csvReader.Read()
@@ -53,7 +55,7 @@ func main() {
 			log.Panicln(err)
 		}
 
-		chans[numChannel] <- rec
+		chans[numChannel] <- append([]string{Query}, rec...)
 	}
 
 	for i := 0; i < len(chans); i++ {
