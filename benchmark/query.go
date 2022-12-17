@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-func Process(c chan []string, result chan []int64, quit chan int) {
+func Process(connStr string, c chan []string, result chan []int64, quit chan int) {
 	ctx := context.Background()
-	conn, err := db.NewConnection(ctx, "postgres://postgres:password@192.168.1.36:5432/homework")
+	conn, err := db.NewConnection(ctx, connStr)
 
 	if err != nil {
 		log.Panicln(err)
