@@ -1,20 +1,17 @@
 package benchmark
 
-import (
-	"sort"
-	"time"
-)
+import "sort"
 
-func Total(arr []time.Duration) int64 {
+func Total(arr []int64) int64 {
 	total := int64(0)
 	for _, duration := range arr {
-		total += int64(duration)
+		total += duration
 	}
 
 	return total
 }
 
-func Average(arr []time.Duration) int64 {
+func Average(arr []int64) int64 {
 	if len(arr) == 0 {
 		return 0
 	}
@@ -22,7 +19,7 @@ func Average(arr []time.Duration) int64 {
 	return Total(arr) / int64(len(arr))
 }
 
-func Min(arr []time.Duration) int64 {
+func Min(arr []int64) int64 {
 	if len(arr) == 0 {
 		return 0
 	}
@@ -34,10 +31,10 @@ func Min(arr []time.Duration) int64 {
 		}
 	}
 
-	return int64(min)
+	return min
 }
 
-func Max(arr []time.Duration) int64 {
+func Max(arr []int64) int64 {
 	if len(arr) == 0 {
 		return 0
 	}
@@ -49,11 +46,11 @@ func Max(arr []time.Duration) int64 {
 		}
 	}
 
-	return int64(max)
+	return max
 }
 
-func Median(arr []time.Duration) int64 {
-	dataCopy := make([]time.Duration, len(arr))
+func Median(arr []int64) int64 {
+	dataCopy := make([]int64, len(arr))
 	copy(dataCopy, arr)
 
 	sort.Slice(dataCopy, func(i, j int) bool { return dataCopy[i] < dataCopy[j] })
@@ -65,8 +62,8 @@ func Median(arr []time.Duration) int64 {
 	}
 
 	if l%2 == 0 {
-		return int64((dataCopy[l/2-1] + dataCopy[l/2]) / 2) //nolint:gomnd // no magic number
+		return (dataCopy[l/2-1] + dataCopy[l/2]) / 2 //nolint:gomnd // no magic number
 	}
 
-	return int64(dataCopy[l/2])
+	return dataCopy[l/2]
 }

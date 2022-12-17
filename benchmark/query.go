@@ -3,7 +3,7 @@ package benchmark
 import (
 	"context"
 	"fmt"
-	"os"
+	"log"
 	"sync"
 	"tdb_benchmarking/db"
 	"time"
@@ -14,14 +14,13 @@ func Process(wg *sync.WaitGroup, channel int, c chan []string, quit chan int) {
 	conn, err := db.NewConnection(ctx, "postgres://postgres:password@192.168.1.36:5432/homework")
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+		log.Panicln(err)
 	}
 
 	defer conn.Close(ctx)
 	defer wg.Done()
 
-	var durations []time.Duration
+	var durations []int64
 
 	for {
 		select {
@@ -31,7 +30,7 @@ func Process(wg *sync.WaitGroup, channel int, c chan []string, quit chan int) {
 			//nolint:errcheck // ignore the result
 			conn.ExecSelect(ctx, query[0], query[1:])
 
-			durations = append(durations, time.Since(start))
+			durations = append(durations, int64(time.Since(start)))
 		case <-quit:
 			fmt.Printf("quit channel %d: len: %d - avg: %d total: %d min: %d, max: %d, median: %d\n", channel,
 				len(durations),
