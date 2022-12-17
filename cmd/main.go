@@ -14,7 +14,8 @@ import (
 
 func main() {
 	var wg sync.WaitGroup
-	wg.Add(20)
+
+	wg.Add(20) //nolint:gomnd // no magic number
 
 	quit := make(chan int)
 
@@ -27,26 +28,31 @@ func main() {
 	// open file
 	f, err := os.Open("data/query_params.csv")
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 
-	// remember to close the file at the end of the program
 	defer f.Close()
 
 	// read csv values using csv.Reader
 	csvReader := csv.NewReader(f)
-	csvReader.Read()
+	csvReader.Read() //nolint:errcheck // we don't use header
 
 	for {
 		rec, err := csvReader.Read()
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
-			log.Fatal(err)
+			log.Panicln(err)
 		}
 
 		numChannel, err := strconv.Atoi(strings.Split(rec[0], "_")[1])
+
+		if err != nil {
+			log.Panicln(err)
+		}
+
 		chans[numChannel] <- rec
 	}
 

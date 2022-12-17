@@ -11,10 +11,13 @@ docker exec -it timescaledb psql -U postgres
 # Stop container
 docker kill timescaledb
 
+# Start container
+docker start timescaledb
+
 # Remove container
 docker rm timescaledb
 
-# Create database 
+# Create database
 docker exec -i timescaledb psql -U postgres < db/cpu_usage.sql
 
 # Import data
