@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 const Query = "SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3"
 const connStr = "postgres://postgres:password@192.168.1.36:5432/homework"
 const NumWorkers = 20
+const File = "data/query_params.csv"
 
 func main() {
 	quit := make(chan int)
@@ -26,7 +26,7 @@ func main() {
 		go benchmark.Process(connStr, channels[i], result, quit)
 	}
 
-	f, err := os.Open("data/query_params.csv")
+	f, err := os.Open(File)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -34,27 +34,15 @@ func main() {
 	defer f.Close()
 
 	csvReader := csv.NewReader(f)
+	data, err := csvReader.ReadAll()
 
-	//nolint:errcheck // we don't use header
-	csvReader.Read()
+	if err != nil {
+		log.Panicln(err)
+	}
 
-	for {
-		rec, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			log.Panicln(err)
-		}
-
-		numChannel, err := strconv.Atoi(strings.Split(rec[0], "_")[1])
-
-		if err != nil {
-			log.Panicln(err)
-		}
-
-		channels[numChannel] <- append([]string{Query}, rec...)
+	for i := 1; i < len(data); i++ {
+		numChannel, _ := strconv.Atoi(strings.Split(data[i][0], "_")[1])
+		channels[numChannel] <- append([]string{Query}, data[i]...)
 	}
 
 	for i := 0; i < len(channels); i++ {
