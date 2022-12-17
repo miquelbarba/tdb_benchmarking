@@ -3,13 +3,14 @@ package benchmark
 import (
 	"context"
 	"log"
-	"tdb_benchmarking/db"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func Process(connStr string, c chan []string, result chan []int64, quit chan int) {
 	ctx := context.Background()
-	conn, err := db.NewConnection(ctx, connStr)
+	conn, err := pgx.Connect(ctx, connStr)
 
 	if err != nil {
 		log.Panicln(err)
@@ -25,7 +26,7 @@ func Process(connStr string, c chan []string, result chan []int64, quit chan int
 			start := time.Now()
 
 			//nolint:errcheck // ignore the result
-			conn.ExecSelect(ctx, query[0], query[1:])
+			conn.Query(ctx, query[0], query[1:])
 
 			durations = append(durations, int64(time.Since(start)))
 		case <-quit:
