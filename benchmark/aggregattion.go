@@ -8,7 +8,7 @@ import (
 func Total(arr []time.Duration) int64 {
 	total := int64(0)
 	for _, duration := range arr {
-		total = total + int64(duration)
+		total += int64(duration)
 	}
 
 	return total
@@ -58,15 +58,15 @@ func Median(arr []time.Duration) int64 {
 
 	sort.Slice(dataCopy, func(i, j int) bool { return dataCopy[i] < dataCopy[j] })
 
-	var median int64
 	l := len(dataCopy)
+
 	if l == 0 {
 		return 0
-	} else if l%2 == 0 {
-		median = int64((dataCopy[l/2-1] + dataCopy[l/2]) / 2)
-	} else {
-		median = int64(dataCopy[l/2])
 	}
 
-	return median
+	if l%2 == 0 {
+		return int64((dataCopy[l/2-1] + dataCopy[l/2]) / 2) //nolint:gomnd // no magic number
+	}
+
+	return int64(dataCopy[l/2])
 }
