@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"tdb_benchmarking/benchmark"
 )
@@ -15,16 +15,13 @@ import (
 const Query = "SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3"
 
 func main() {
-	var wg sync.WaitGroup
-
-	wg.Add(20) //nolint:gomnd // no magic number
-
 	quit := make(chan int)
+	result := make(chan []int64)
 
 	var channels [20]chan []string
 	for i := 0; i < len(channels); i++ {
 		channels[i] = make(chan []string)
-		go benchmark.Process(&wg, i, channels[i], quit)
+		go benchmark.Process(channels[i], result, quit)
 	}
 
 	f, err := os.Open("data/query_params.csv")
@@ -62,5 +59,18 @@ func main() {
 		quit <- 0
 	}
 
-	wg.Wait()
+	var totalDuration []int64
+
+	for i := 0; i < len(channels); i++ {
+		durations := <-result
+		totalDuration = append(totalDuration, durations...)
+	}
+
+	fmt.Printf("Number of queries: %d\nAverage: %d\nTotal time: %d\nMin: %d\nMax: %d\nMedian: %d\n",
+		len(totalDuration),
+		benchmark.Average(totalDuration),
+		benchmark.Total(totalDuration),
+		benchmark.Min(totalDuration),
+		benchmark.Max(totalDuration),
+		benchmark.Median(totalDuration))
 }
