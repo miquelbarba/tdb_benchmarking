@@ -28,13 +28,8 @@ func Process(wg *sync.WaitGroup, channel int, c chan []string, quit chan int) {
 		case query := <-c:
 			start := time.Now()
 
-			conn.ExecSelect( //nolint:errcheck // ignore the result
-				ctx,
-				"SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3",
-				query[0],
-				query[1],
-				query[2],
-			)
+			//nolint:errcheck // ignore the result
+			conn.ExecSelect(ctx, query[0], query[1:])
 
 			durations = append(durations, time.Since(start))
 		case <-quit:
