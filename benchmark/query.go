@@ -29,10 +29,15 @@ func Process(connStr string, c chan []string, result chan []int64, quit chan int
 		case query := <-c:
 			start := time.Now()
 
-			//nolint:errcheck // ignore the result
-			conn.Query(ctx, query[0], query[1:])
+			rows, err := conn.Query(ctx, query[0], query[1], query[2], query[3])
+
+			if err != nil {
+				fmt.Printf("Error executing %s: %s\n", query[1:], err)
+			}
 
 			durations = append(durations, int64(time.Since(start)))
+
+			rows.Close()
 		case <-quit:
 			result <- durations
 			return
