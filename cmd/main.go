@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
 	"tdb_benchmarking/benchmark"
 )
@@ -59,16 +57,33 @@ func readCSV(fileName string) [][]string {
 	return data
 }
 
+func assignWorker(identifier string, numWorkers int, mappingWorkers map[string]int, currentWorker *int) int {
+	worker, ok := mappingWorkers[identifier]
+	if ok {
+		return worker
+	}
+
+	mappingWorkers[identifier] = *currentWorker % numWorkers
+	(*currentWorker)++
+
+	return mappingWorkers[identifier]
+}
+
 func main() {
+	mappingWorkers := make(map[string]int)
+	currentWorker := 0
+
 	data := readCSV(FileName)
 	channels, result, quit := buildWorkers(NumWorkers)
 
 	for i := 1; i < len(data); i++ {
-		numChannel, _ := strconv.Atoi(strings.Split(data[i][0], "_")[1])
-		channels[numChannel] <- append([]string{Query}, data[i]...)
+		numWorker := assignWorker(data[i][0], NumWorkers, mappingWorkers, &currentWorker)
+		channels[numWorker] <- append([]string{Query}, data[i]...)
 	}
 
 	totalDuration := quitWorkers(quit, result, NumWorkers)
+
+	fmt.Println(mappingWorkers)
 
 	fmt.Printf(
 		"Number of queries: %d\n"+
