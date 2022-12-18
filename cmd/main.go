@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,9 +10,11 @@ import (
 	"tdb_benchmarking/benchmark"
 )
 
+// -workers 40
+
 const Query = "SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3"
 const ConnStr = "postgres://postgres:password@192.168.1.36:5432/homework"
-const NumWorkers = 20
+const DefaultNumWorkers = 20
 const FileName = "data/query_params.csv"
 
 func buildWorkers(numWorkers int) (channels []chan []string, result chan []int64, quit chan int) {
@@ -66,24 +69,33 @@ func assignWorker(identifier string, numWorkers int, mappingWorkers map[string]i
 	mappingWorkers[identifier] = *currentWorker % numWorkers
 	(*currentWorker)++
 
+	fmt.Printf("%s -> %d \n", identifier, mappingWorkers[identifier])
+
 	return mappingWorkers[identifier]
 }
 
+func parseCommandLine() int {
+	numWorkers := flag.Int("workers", DefaultNumWorkers, "Number of workers")
+	flag.Parse()
+
+	return *numWorkers
+}
+
 func main() {
-	mappingWorkers := make(map[string]int)
+	numWorkers := parseCommandLine()
+
 	currentWorker := 0
+	mappingWorkers := make(map[string]int)
 
 	data := readCSV(FileName)
-	channels, result, quit := buildWorkers(NumWorkers)
+	channels, result, quit := buildWorkers(numWorkers)
 
 	for i := 1; i < len(data); i++ {
-		numWorker := assignWorker(data[i][0], NumWorkers, mappingWorkers, &currentWorker)
+		numWorker := assignWorker(data[i][0], numWorkers, mappingWorkers, &currentWorker)
 		channels[numWorker] <- append([]string{Query}, data[i]...)
 	}
 
-	totalDuration := quitWorkers(quit, result, NumWorkers)
-
-	fmt.Println(mappingWorkers)
+	totalDuration := quitWorkers(quit, result, numWorkers)
 
 	fmt.Printf(
 		"Number of queries: %d\n"+
