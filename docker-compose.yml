@@ -1,0 +1,22 @@
+version: '3.0'
+
+services:
+  go:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - timescale
+
+  timescale:
+    image: timescale/timescaledb:2.9.0-pg14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5

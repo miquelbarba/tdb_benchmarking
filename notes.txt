@@ -18,10 +18,10 @@ docker start timescaledb
 docker rm timescaledb
 
 # Create database
-docker exec -i timescaledb psql -U postgres < db/cpu_usage.sql
+docker exec -i timescaledb psql -U postgres < data/cpu_usage.sql
 
 # Import data
-docker cp db/cpu_usage.csv timescaledb:/tmp/cpu_usage.csv
+docker cp data/cpu_usage.csv timescaledb:/tmp/cpu_usage.csv
 docker exec -i timescaledb psql -U postgres -d homework -c "\COPY cpu_usage FROM /tmp/cpu_usage.csv CSV HEADER"
 
 
@@ -32,9 +32,13 @@ docker build . -t timescale-bench
 docker run timescale-bench
 
 
-alias docker_stop_all='docker kill $(docker ps -q)'
-alias docker_rmc='docker rm $(docker ps -a -q) -f'
-alias docker_rmi='docker rmi $(docker images -q) -f'
-alias docker_prunen='docker network prune -f'
-alias docker_prunev='docker volume prune -f'
-alias docker_rm_all='docker_rmc;docker_rmi;docker_prunen;docker_prunev'
+docker-compose -p timescale-bench_compose -f docker-compose.yml build
+docker-compose -p timescale-bench_compose -f docker-compose.yml up
+docker-compose -p timescale-bench_compose -f docker-compose.yml exec -T timescale psql -U postgres < data/cpu_usage.sql
+docker-compose -p timescale-bench_compose -f docker-compose.yml exec -T timescale psql -U postgres < data/materialized_view.sql
+docker-compose -p timescale-bench_compose -f docker-compose.yml cp data/cpu_usage.csv timescale:/tmp/cpu_usage.csv
+docker-compose -p timescale-bench_compose -f docker-compose.yml exec -T timescale psql -U postgres -d homework -c "\COPY cpu_usage FROM /tmp/cpu_usage.csv CSV HEADER"
+docker-compose -p timescale-bench_compose -f docker-compose.yml run --rm go /go/bin/timescale-bench -host timescale
+
+docker-compose -p timescale-bench_compose -f docker-compose.yml run --rm go /bin/sh
+
