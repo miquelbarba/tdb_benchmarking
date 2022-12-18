@@ -10,20 +10,23 @@ import (
 	"tdb_benchmarking/benchmark"
 )
 
-// -workers 40
-
 const Query = "SELECT bucket, max, min FROM cpu_usage_summary_minute WHERE host = $1 AND bucket BETWEEN $2 AND $3"
-const ConnStr = "postgres://postgres:password@192.168.1.36:5432/homework"
-const DefaultNumWorkers = 20
-const FileName = "data/query_params.csv"
 
-func buildWorkers(numWorkers int) (channels []chan []string, result chan []int64, quit chan int) {
+const DefaultHost = "192.168.1.36"
+const DefaultUser = "postgres"
+const DefaultPassword = "password"
+const DefaultPort = 5432
+const DefaultDatabase = "homework"
+const DefaultWorkers = 20
+const DefaultFile = "data/query_params.csv"
+
+func buildWorkers(numWorkers int, connStr string) (channels []chan []string, result chan []int64, quit chan int) {
 	quit = make(chan int)
 	result = make(chan []int64)
 
 	for i := 0; i < numWorkers; i++ {
 		channels = append(channels, make(chan []string))
-		go benchmark.Process(ConnStr, channels[i], result, quit)
+		go benchmark.Process(connStr, channels[i], result, quit)
 	}
 
 	return channels, result, quit
@@ -74,21 +77,33 @@ func assignWorker(identifier string, numWorkers int, mappingWorkers map[string]i
 	return mappingWorkers[identifier]
 }
 
-func parseCommandLine() int {
-	numWorkers := flag.Int("workers", DefaultNumWorkers, "Number of workers")
+func parseCommandLine() (numWorkers int, file, connStr string) {
+	workers := flag.Int("workers", DefaultWorkers, fmt.Sprintf("Number of workers (default %d)", DefaultWorkers))
+	fileName := flag.String("data", DefaultFile, fmt.Sprintf("File with query data (default %s)", DefaultFile))
+
+	host := flag.String("host", DefaultHost, fmt.Sprintf("Timescale host (default %s)", DefaultHost))
+	port := flag.Int("port", DefaultPort, fmt.Sprintf("Timescale port (default %d)", DefaultPort))
+	user := flag.String("username", DefaultUser, fmt.Sprintf("Timescale user (default %s)", DefaultUser))
+	password := flag.String("password", DefaultPassword, fmt.Sprintf("Timescale password (default %s)", DefaultPassword))
+	database := flag.String("database", DefaultDatabase, fmt.Sprintf("Timescale database (default %s)", DefaultDatabase))
+
 	flag.Parse()
 
-	return *numWorkers
+	numWorkers = *workers
+	file = *fileName
+	connStr = fmt.Sprintf("postgres://%s:%s@%s:%d/%s", *user, *password, *host, *port, *database)
+
+	return
 }
 
 func main() {
-	numWorkers := parseCommandLine()
+	numWorkers, fileName, connStr := parseCommandLine()
 
 	currentWorker := 0
 	mappingWorkers := make(map[string]int)
 
-	data := readCSV(FileName)
-	channels, result, quit := buildWorkers(numWorkers)
+	data := readCSV(fileName)
+	channels, result, quit := buildWorkers(numWorkers, connStr)
 
 	for i := 1; i < len(data); i++ {
 		numWorker := assignWorker(data[i][0], numWorkers, mappingWorkers, &currentWorker)
