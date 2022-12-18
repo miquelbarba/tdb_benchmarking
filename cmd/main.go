@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"tdb_benchmarking/benchmark"
@@ -45,10 +44,10 @@ func quitWorkers(quit chan int, result chan []int64, numWorkers int) []int64 {
 	return totalDuration
 }
 
-func readCSV(fileName string) [][]string {
+func readCSV(fileName string) ([][]string, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
-		log.Panicln(err)
+		return nil, err
 	}
 
 	defer f.Close()
@@ -57,10 +56,10 @@ func readCSV(fileName string) [][]string {
 	data, err := csvReader.ReadAll()
 
 	if err != nil {
-		log.Panicln(err)
+		return nil, err
 	}
 
-	return data
+	return data, nil
 }
 
 func assignWorker(identifier string, numWorkers int, mappingWorkers map[string]int, currentWorker *int) int {
@@ -72,20 +71,18 @@ func assignWorker(identifier string, numWorkers int, mappingWorkers map[string]i
 	mappingWorkers[identifier] = *currentWorker % numWorkers
 	(*currentWorker)++
 
-	fmt.Printf("%s -> %d \n", identifier, mappingWorkers[identifier])
-
 	return mappingWorkers[identifier]
 }
 
 func parseCommandLine() (numWorkers int, file, connStr string) {
-	workers := flag.Int("workers", DefaultWorkers, fmt.Sprintf("Number of workers (default %d)", DefaultWorkers))
-	fileName := flag.String("data", DefaultFile, fmt.Sprintf("File with query data (default %s)", DefaultFile))
+	workers := flag.Int("workers", DefaultWorkers, "Number of workers")
+	fileName := flag.String("data", DefaultFile, "File with query data")
 
-	host := flag.String("host", DefaultHost, fmt.Sprintf("Timescale host (default %s)", DefaultHost))
-	port := flag.Int("port", DefaultPort, fmt.Sprintf("Timescale port (default %d)", DefaultPort))
-	user := flag.String("username", DefaultUser, fmt.Sprintf("Timescale user (default %s)", DefaultUser))
-	password := flag.String("password", DefaultPassword, fmt.Sprintf("Timescale password (default %s)", DefaultPassword))
-	database := flag.String("database", DefaultDatabase, fmt.Sprintf("Timescale database (default %s)", DefaultDatabase))
+	host := flag.String("host", DefaultHost, "Timescale host")
+	port := flag.Int("port", DefaultPort, "Timescale port")
+	user := flag.String("username", DefaultUser, "Timescale user")
+	password := flag.String("password", DefaultPassword, "Timescale password")
+	database := flag.String("database", DefaultDatabase, "Timescale database")
 
 	flag.Parse()
 
@@ -102,7 +99,12 @@ func main() {
 	currentWorker := 0
 	mappingWorkers := make(map[string]int)
 
-	data := readCSV(fileName)
+	data, err := readCSV(fileName)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	channels, result, quit := buildWorkers(numWorkers, connStr)
 
 	for i := 1; i < len(data); i++ {
