@@ -118,15 +118,15 @@ func main() {
 
 	fmt.Printf(
 		"Number of queries: %d\n"+
-			"Average time: %d\n"+
-			"Total time: %d\n"+
-			"Min: %d\n"+
-			"Max: %d\n"+
-			"Median: %d\n",
+			"Total: %f ms\n"+
+			"Average: %f ms\n"+
+			"Median: %f ms\n"+
+			"Min: %f ms\n"+
+			"Max: %f ms\n",
 		len(totalDuration),
-		benchmark.Average(totalDuration),
-		benchmark.Total(totalDuration),
-		benchmark.Min(totalDuration),
-		benchmark.Max(totalDuration),
-		benchmark.Median(totalDuration))
+		benchmark.ToMilliseconds(benchmark.Total(totalDuration)),
+		benchmark.ToMilliseconds(benchmark.Average(totalDuration)),
+		benchmark.ToMilliseconds(benchmark.Median(totalDuration)),
+		benchmark.ToMilliseconds(benchmark.Min(totalDuration)),
+		benchmark.ToMilliseconds(benchmark.Max(totalDuration)))
 }
