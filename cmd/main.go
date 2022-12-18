@@ -19,6 +19,8 @@ const DefaultDatabase = "homework"
 const DefaultWorkers = 20
 const DefaultFile = "data/query_params.csv"
 
+const ReadFileError = 3
+
 func buildWorkers(numWorkers int, connStr string) (channels []chan []string, result chan []int64, quit chan int) {
 	quit = make(chan int)
 	result = make(chan []int64)
@@ -102,7 +104,7 @@ func main() {
 	data, err := readCSV(fileName)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		os.Exit(ReadFileError)
 	}
 
 	channels, result, quit := buildWorkers(numWorkers, connStr)
