@@ -25,7 +25,11 @@ docker cp db/cpu_usage.csv timescaledb:/tmp/cpu_usage.csv
 docker exec -i timescaledb psql -U postgres -d homework -c "\COPY cpu_usage FROM /tmp/cpu_usage.csv CSV HEADER"
 
 
+# build
+docker build . -t timescale-bench
 
+# run
+docker run timescale-bench
 
 
 alias docker_stop_all='docker kill $(docker ps -q)'
