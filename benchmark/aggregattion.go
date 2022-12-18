@@ -62,8 +62,14 @@ func Median(arr []int64) int64 {
 	}
 
 	if l%2 == 0 {
-		return (dataCopy[l/2-1] + dataCopy[l/2]) / 2 //nolint:gomnd // no magic number
+		//nolint:gomnd // no magic number
+		return (dataCopy[l/2-1] + dataCopy[l/2]) / 2
 	}
 
 	return dataCopy[l/2]
+}
+
+func ToMilliseconds(num int64) float64 {
+	//nolint:gomnd // no magic number
+	return float64(num) / 1e6
 }
