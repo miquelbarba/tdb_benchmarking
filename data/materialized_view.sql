@@ -1,4 +1,3 @@
-\c homework
 CREATE MATERIALIZED VIEW cpu_usage_summary_minute
 WITH (timescaledb.continuous) AS
 SELECT host,
