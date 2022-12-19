@@ -7,7 +7,7 @@ High level goal: To implement a command line tool that can be used to benchmark 
 - the minimum query time (for a single query),
 - the median query time,
 - the average query time,
-- ● and the maximum query time.
+- and the maximum query time.
 
 Build
 -----
@@ -39,7 +39,7 @@ Usage of ./timescale-bench:
       Number of workers (default 20)
 ```
 
-When running the command, it returns:
+When running the command, it shows:
 
 ```
 $ ./timescale-bench
@@ -51,11 +51,11 @@ Min: 1.672334 ms
 Max: 21.533833 ms
 ```
 
-There are the scripts create_db.sh to create and import the database and drop_db.sh to delete the database.
-
 Run With Docker
 ---------------
 To run the command with Docker, requires docker 20.10.21 and docker-compose v2.13.0
+
+There are the scripts create_db.sh and drop_db.sh to create, import and delete the database in docker compose.
 
 Follow the instructions:
 
